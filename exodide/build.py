@@ -38,6 +38,8 @@ def get_emscripten_version() -> str:
 
     try:
         emcc = subprocess.run(["emcc", "--version"], capture_output=True, text=True, shell=True)
+        if not emcc.stdout:
+            emcc = subprocess.run(["emcc", "--version"], capture_output=True, text=True, shell=False)
     except Exception as e:
         raise RuntimeError(error("execute") + f" {e}")
 
