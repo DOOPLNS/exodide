@@ -37,7 +37,7 @@ def get_emscripten_version() -> str:
                        "Emscripten setup might be wrong.")
 
     try:
-        emcc = subprocess.run(["emcc", "--version"], capture_output=True, text=True)
+        emcc = subprocess.run(["emcc", "--version"], capture_output=True, text=True, shell=True)
     except Exception as e:
         raise RuntimeError(error("execute") + f" {e}")
 
