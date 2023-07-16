@@ -10,13 +10,14 @@ import os
 import re
 import sys
 import subprocess
-from typing import Dict, List
+from typing import Dict, List, Type
 from unittest import mock
 
 from distutils.command.build import build as _build
 from setuptools import Command
 from setuptools.command.build_ext import build_ext as _build_ext
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+from collections.abc import Mapping
 from wblog import getLogger
 
 logger = getLogger()
@@ -37,14 +38,13 @@ def get_emscripten_version() -> str:
 
     try:
         emcc = subprocess.run(["emcc", "--version"], capture_output=True, text=True)
-    except e:
+    except Exception as e:
         raise RuntimeError(error("execute") + f" {e}")
 
     if not emcc.stdout:
         raise RuntimeError(error("capture"))
 
-    version = re.search(r"^emcc \(.*\) ([0-9]+)\.([0-9]+)\.([0-9]+) \(.*\)$",
-                              emcc.stdout, re.M)
+    version = re.search(r"^emcc \(.*\) ([0-9]+)\.([0-9]+)\.([0-9]+) \(.*\)$", emcc.stdout, re.M)
 
     if not version:
         raise RuntimeError(error("parse"))
@@ -168,7 +168,7 @@ def exodide_extension_filename(ext_name: str) -> str:
         Extension file name
     """
     ext_path = ext_name.split(".")
-    return os.path.join(*ext_path) + ".cpython-310-wasm32-emscripten.so"
+    return os.path.join(*ext_path) + f".cpython-{sys.version_info[0]}{sys.version_info[1]}-wasm32-emscripten.so"
 
 
 class build(_build):
@@ -216,7 +216,7 @@ class build_ext(_build_ext):
         return exodide_extension_filename(ext_name)
 
 
-def cmdclass() -> Dict[str, Command]:
+def cmdclass() -> Mapping[str, Type[build | build_ext]]:
     """
     Get command classes for exodide
 
